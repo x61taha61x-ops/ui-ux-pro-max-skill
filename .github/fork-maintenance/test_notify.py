@@ -39,6 +39,23 @@ else:
             self.assertEqual(1, len(notices))
             self.assertIn('@x61taha61x-ops', notices[0]['body'])
 
+    def test_retried_failed_merge_does_not_repeat_the_same_owner_mention(self):
+        # Same source/fork/error, but a fresh merge commit receives a different SHA.
+        from unittest.mock import patch
+        reports = []
+        def api(args, **kwargs):
+            if '-X' in args:
+                reports.append(json.loads(kwargs['input']))
+                return type('Result', (), {'returncode': 0, 'stderr': ''})()
+            return type('Result', (), {'returncode': 0, 'stdout': json.dumps(reports), 'stderr': ''})()
+        report = {'status': 'attention', 'candidate': 'a' * 40, 'fork': 'b' * 40,
+                  'upstream': 'c' * 40, 'error': 'n8n validation failed'}
+        with patch('maintenance.subprocess.run', side_effect=api):
+            m.notify('owner/repo', report)
+            report['candidate'] = 'd' * 40
+            m.notify('owner/repo', report)
+        self.assertEqual(1, len(reports))
+
 
 if __name__ == '__main__':
     unittest.main()

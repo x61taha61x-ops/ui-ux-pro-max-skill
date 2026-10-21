@@ -111,8 +111,8 @@ def notify(repo, report):
     """One commit comment per distinct update/failure; silence for no change."""
     if report['status'] == 'unchanged':
         return
-    key = hashlib.sha256(json.dumps({k: report.get(k) for k in
-                        ['status', 'candidate', 'upstream', 'error']}, sort_keys=True).encode()).hexdigest()
+    fields = ['status', 'candidate'] if report['status'] == 'updated' else ['status', 'fork', 'upstream', 'error']
+    key = hashlib.sha256(json.dumps({k: report.get(k) for k in fields}, sort_keys=True).encode()).hexdigest()
     marker = f'<!-- fork-maintenance:{key} -->'
     commit = report.get('candidate') if report['status'] == 'updated' else report.get('fork') or os.environ.get('GITHUB_SHA')
     if not commit or not all(c in '0123456789abcdef' for c in commit) or len(commit) != 40:

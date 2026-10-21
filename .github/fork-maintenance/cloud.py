@@ -12,9 +12,53 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from contextlib import contextmanager
 
 import maintenance as m
 import validate
+
+
+@contextmanager
+def application_lock(base):
+    """Exclude application starts/writes for the entire snapshot/build/promotion."""
+    with (Path(base) / 'application.lock').open('a') as lock:
+        try:
+            fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError as error:
+            raise m.UpdateError('n8n is running or its data is in use; existing runtime retained') from error
+        yield
+
+
+def data_fingerprint(source):
+    source = Path(source)
+    digest = hashlib.sha256()
+    if not source.exists():
+        return digest.hexdigest()
+    for path in sorted(source.rglob('*')):
+        if path.is_symlink():
+            raise m.UpdateError('Linked n8n data needs manual review')
+        if not path.is_file() or path.name.endswith('-shm'):
+            continue
+        if path.name.endswith('-wal') and path.stat().st_size == 0:
+            continue
+        digest.update(str(path.relative_to(source)).encode() + b'\0')
+        with path.open('rb') as stream:
+            for chunk in iter(lambda: stream.read(1024 * 1024), b''):
+                digest.update(chunk)
+        digest.update(b'\0')
+    return digest.hexdigest()
+
+
+def require_unchanged_data(source, expected):
+    if data_fingerprint(source) != expected:
+        raise m.UpdateError('n8n data changed during validation; existing runtime retained')
+    return True
+
+
+def require_stopped_application():
+    with socket.socket() as sock:
+        if sock.connect_ex(('127.0.0.1', 5678)) == 0:
+            raise m.UpdateError('An application is using port 5678. Keep it running; refresh at the next stopped startup or stop it deliberately first.')
 
 
 def backup_data(source, target):
@@ -94,7 +138,7 @@ def wrappers(release):
     codex = shutil.which('codex')
     tini = shutil.which('tini') or '/workspace/.onboarding/tools/tini-root/usr/bin/tini'
     commands = {
-        'n8n': f'cd {release}/repos/n8n\nexec node packages/cli/bin/n8n "$@"',
+        'n8n': f'cd {release}/repos/n8n\nexec flock --shared --nonblock --conflict-exit-code=75 {release.parent.parent}/application.lock node packages/cli/bin/n8n "$@"',
         'uipro': f'exec node {release}/repos/ui-ux-pro-max-skill/cli/dist/index.js "$@"',
         'browse': f'exec {release}/repos/gstack/browse/dist/browse "$@"',
         'codex-with-skills': f'exec env CODEX_HOME={release}/native-codex {codex} "$@"',
@@ -131,10 +175,12 @@ def update(base, verify=False):
                          'upstream': remote_tip(f'https://github.com/{upstream}.git', branch)}
     if manifest and not verify and remotes == manifest['remotes'] and all(m.head(sources[n]) == manifest['commits'][n] for n in m.REPOS):
         return {'status': 'unchanged'}
-    # Updating a running application's data would risk missing writes after the snapshot.
-    with socket.socket() as sock:
-        if sock.connect_ex(('127.0.0.1', 5678)) == 0:
-            raise m.UpdateError('An application is using port 5678. Keep it running; refresh at the next stopped startup or stop it deliberately first.')
+    with application_lock(base):
+        return prepare_release(base, active, previous, originals, sources, expected, remotes)
+
+
+def prepare_release(base, active, previous, originals, sources, expected, remotes):
+    require_stopped_application()
     release = base / 'releases' / time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())
     (release / 'repos').mkdir(parents=True)
     (release / 'runtime').mkdir()
@@ -148,7 +194,9 @@ def update(base, verify=False):
             commits[name] = prepared['candidate']
             remotes[name] = {'fork': prepared['fork'], 'upstream': prepared['upstream']}
         old_data = previous / 'n8n-data' if previous else Path('/workspace/.onboarding/n8n-app')
+        before_data = data_fingerprint(old_data)
         backup_data(old_data, release / 'n8n-data')
+        require_unchanged_data(old_data, before_data)
 
         def gate():
             for name in m.REPOS:
@@ -176,6 +224,8 @@ def update(base, verify=False):
                         'original_heads': {name: m.head(root) for name, root in originals.items()},
                         'previous': str(previous) if previous else None, 'validated': True}
             (release / 'manifest.json').write_text(json.dumps(metadata, indent=2))
+            require_stopped_application()
+            require_unchanged_data(old_data, before_data)
             return True
 
         m.activate(active, release, expected, gate)
