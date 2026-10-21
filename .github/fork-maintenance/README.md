@@ -1,0 +1,15 @@
+# Validated fork updates
+
+Original repositories: obra/superpowers (main), nextlevelbuilder/ui-ux-pro-max-skill (main), garrytan/gstack (main), n8n-io/n8n (master).
+
+Each fork's `Validated upstream updates` workflow runs daily at **06:17 Europe/Istanbul / 03:17 UTC**, and supports manual `workflow_dispatch`. GitHub-hosted runners run independently of the Codex cloud machine. GitHub can delay cron jobs; public scheduled workflows can be disabled after 60 days without repository activity. A configured cron alone does not prove a scheduled invocation occurred. Inspect actual Actions runs and workflow state.
+
+The controller clones a candidate and merges the fork and upstream tips. It preserves local/fork commits; there is no reset, rebase, force push or automatic conflict resolution. Dirty working trees are rejected. Validation runs on the candidate in isolated native Codex profiles. Credentials needed to push forks are removed from validation subprocess environments. Only the validated exact commit can be pushed, and only if the fork tip has not changed during validation.
+
+Validation includes actual native Codex skill discovery for the three skill projects, Superpowers lifecycle tests under tini, UI CLI build/search and Python tests, gstack's browser navigation and DOM interaction, and n8n's full application/editor build plus SQLite startup, readiness, editor and settings API requests. Chromium uses gstack's documented no-sandbox compatibility switch in constrained runners. Optional external integrations and paid agent evaluations are outside the gate.
+
+No-change runs create no issues or comments. Successful updates and distinct intervention conditions create a GitHub issue mentioning the owner. Identical conditions are deduplicated across the latest 100 issues. Native GitHub Actions subscription notifications depend on the owner's GitHub notification settings; this workflow does not alter those settings.
+
+For a manual hosted trial, open each fork → Actions → Validated upstream updates → Run workflow, enable `verify_unchanged`. Fork Actions may need to be enabled through “I understand my workflows, go ahead and enable them”. Review default workflow permissions if GitHub denies pushes or issue creation. The workflow explicitly requests Contents: write and Issues: write; it does not require a personal access token.
+
+The cloud bootstrap prepares a new release set under `/workspace/.onboarding/updates/releases` and changes only the `current` symlink after all four gates pass. The original workspace checkouts and previous release stay intact. A failed candidate is retained with logs for diagnosis. Local edits in the active/original checkout cause startup updates to stop, with no stash or overwrite. Processes and SQLite data are never replaced by candidate tests.

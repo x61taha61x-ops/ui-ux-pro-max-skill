@@ -1,0 +1,69 @@
+name: Validated upstream updates
+
+on:
+  schedule:
+    - cron: '17 3 * * *'
+  workflow_dispatch:
+    inputs:
+      verify_unchanged:
+        description: Run full validation even when upstream has no new commits
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  group: validated-upstream-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 110
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '24'
+      - name: Install validation tools
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y tini
+          npm install --prefix "$RUNNER_TEMP/maintenance-tools" --no-package-lock bun@1.4.2 @openai/codex@0.163.0
+          echo "$RUNNER_TEMP/maintenance-tools/node_modules/.bin" >> "$GITHUB_PATH"
+          mkdir -p "$RUNNER_TEMP/maintenance-controller"
+          cp .github/fork-maintenance/*.py "$RUNNER_TEMP/maintenance-controller/"
+          python3 -m unittest discover -s "$RUNNER_TEMP/maintenance-controller" -p 'test_*.py' -v
+      - name: Prepare, validate, then update fork
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERIFY_UNCHANGED: ${{ inputs.verify_unchanged }}
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/maintenance-browsers
+        run: |
+          gh auth setup-git
+          maintenance_verify=()
+          if [ "$VERIFY_UNCHANGED" = true ]; then maintenance_verify+=(--verify-unchanged); fi
+          python3 "$RUNNER_TEMP/maintenance-controller/maintenance.py" daily \
+            --repo "${GITHUB_REPOSITORY#*/}" --source "$GITHUB_WORKSPACE" \
+            --stage "$RUNNER_TEMP/maintenance-candidate" \
+            --report "$RUNNER_TEMP/maintenance-report.json" --push "${maintenance_verify[@]}"
+      - name: Notify only about applied updates or required intervention
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ ! -f "$RUNNER_TEMP/maintenance-report.json" ]; then
+            python3 -c 'import json,os; json.dump({"status":"attention","error":"Maintenance setup failed before candidate validation; inspect this Actions run."},open(os.environ["RUNNER_TEMP"]+"/maintenance-report.json","w"))'
+          fi
+          python3 .github/fork-maintenance/maintenance.py notify \
+            --repo "$GITHUB_REPOSITORY" --report "$RUNNER_TEMP/maintenance-report.json"
+      - name: Retain diagnostics for failures
+        if: failure()
+        run: |
+          test ! -f "$RUNNER_TEMP/maintenance-candidate/validation.log" || tail -n 80 "$RUNNER_TEMP/maintenance-candidate/validation.log"
+          test ! -f "$RUNNER_TEMP/maintenance-candidate/runtime/build.log" || tail -n 50 "$RUNNER_TEMP/maintenance-candidate/runtime/build.log"
