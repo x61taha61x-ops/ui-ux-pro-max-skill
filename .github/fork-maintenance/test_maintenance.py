@@ -118,6 +118,24 @@ class MaintenanceTests(unittest.TestCase):
             m.publish(self.root / 'candidate', 'main', result['fork'])
         self.assertEqual(self.base, git(self.remote, 'rev-parse', 'main'))
 
+    def test_startup_accepts_published_commits_but_retains_unpublished_work(self):
+        from cloud import require_published_source
+        own = self.commit(self.source, 'published.txt', 'my changes')
+        with self.assertRaisesRegex(m.UpdateError, 'Unpublished'):
+            require_published_source(self.source, str(self.remote), 'main')
+        self.assertEqual(own, git(self.source, 'rev-parse', 'HEAD'))
+        git(self.source, 'push', '-q', 'origin', 'HEAD:main')
+        require_published_source(self.source, str(self.remote), 'main')
+        self.assertEqual(own, git(self.source, 'rev-parse', 'HEAD'))
+
+    def test_validated_update_can_publish_without_rewriting_history(self):
+        newest = self.commit(self.up, 'new.txt', 'upstream')
+        result = self.prepare()
+        m.mark_validated(self.root / 'candidate')
+        m.publish(self.root / 'candidate', 'main', result['fork'])
+        self.assertEqual(newest, git(self.remote, 'rev-parse', 'main'))
+        git(self.remote, 'merge-base', '--is-ancestor', self.base, 'main')
+
 
 if __name__ == '__main__':
     unittest.main()

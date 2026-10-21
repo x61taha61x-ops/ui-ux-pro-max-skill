@@ -108,21 +108,32 @@ def activate(active, release, expected, validator):
 
 
 def notify(repo, report):
-    """One issue per distinct update/failure; no issue or comment for no change."""
+    """One commit comment per distinct update/failure; silence for no change."""
     if report['status'] == 'unchanged':
         return
     key = hashlib.sha256(json.dumps({k: report.get(k) for k in
                         ['status', 'candidate', 'upstream', 'error']}, sort_keys=True).encode()).hexdigest()
     marker = f'<!-- fork-maintenance:{key} -->'
-    issues = json.loads(run(['gh', 'api', f'repos/{repo}/issues?state=all&per_page=100']))
-    if any(marker in (issue.get('body') or '') for issue in issues):
+    commit = report.get('candidate') if report['status'] == 'updated' else report.get('fork') or os.environ.get('GITHUB_SHA')
+    if not commit or not all(c in '0123456789abcdef' for c in commit) or len(commit) != 40:
+        raise UpdateError('Notification requires a published commit SHA')
+    endpoint = f'repos/{repo}/commits/{commit}/comments'
+    # Older gh versions support --paginate but not --slurp; decode each JSON page.
+    stream = run(['gh', 'api', endpoint, '--paginate'])
+    comments = []
+    decoder = json.JSONDecoder()
+    while stream.strip():
+        page, end = decoder.raw_decode(stream.lstrip())
+        comments.extend(page)
+        stream = stream.lstrip()[end:]
+    if any(marker in (comment.get('body') or '') for comment in comments):
         return
     title = '[Fork maintenance] ' + ('Updated' if report['status'] == 'updated' else 'Action required')
     summary = report.get('error') or f'Validated update: {report.get("fork")} → {report.get("candidate")}'
     run_url = os.environ.get('GITHUB_SERVER_URL', 'https://github.com') + '/' + repo + '/actions/runs/' + os.environ.get('GITHUB_RUN_ID', '')
-    body = f'@{OWNER}\n\n{summary[:4000]}\n\nRun: {run_url}\n\n{marker}'
-    payload = json.dumps({'title': title, 'body': body})
-    result = subprocess.run(['gh', 'api', '-X', 'POST', f'repos/{repo}/issues', '--input', '-'],
+    body = f'{title}\n\n@{OWNER}\n\n{summary[:4000]}\n\nRun: {run_url}\n\n{marker}'
+    payload = json.dumps({'body': body})
+    result = subprocess.run(['gh', 'api', endpoint, '-X', 'POST', '--input', '-'],
                             input=payload, text=True, capture_output=True, timeout=60)
     if result.returncode:
         raise UpdateError('Could not deliver the required update/intervention notification: ' + result.stderr[-1500:])

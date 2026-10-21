@@ -34,6 +34,8 @@ def environment(runtime):
         'XDG_DATA_HOME': env.get('XDG_DATA_HOME', str(runtime / 'data')),
         'XDG_CACHE_HOME': env.get('XDG_CACHE_HOME', str(runtime / 'cache')),
         'CI': 'true', 'CODEX_HOME': str(runtime / 'codex'),
+        'N8N_USER_FOLDER': str(runtime / 'n8n-smoke-data'),
+        'DB_TYPE': 'sqlite', 'DB_SQLITE_DATABASE': 'database.sqlite',
         'GSTACK_STATE_ROOT': str(runtime / 'gstack-state'),
         'BROWSE_STATE_FILE': str(runtime / 'browse/state.json'),
         'GSTACK_SKIP_FONTS': '1', 'GSTACK_SKIP_GBRAIN_REGEN': '1',

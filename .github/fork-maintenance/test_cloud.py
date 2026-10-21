@@ -1,0 +1,47 @@
+import sqlite3
+import tempfile
+import unittest
+from pathlib import Path
+
+from cloud import backup_data, link_profile_skills
+from maintenance import UpdateError
+
+
+class DataIsolationTests(unittest.TestCase):
+    def test_builtin_skills_do_not_collide_when_profiles_are_combined(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, target = Path(directory) / 'one', Path(directory) / 'two'
+            source.mkdir(); target.mkdir()
+            (source / '.system').mkdir(); (target / '.system').mkdir()
+            skill = source / 'custom'; skill.mkdir(); (skill / 'SKILL.md').write_text('fixture')
+            link_profile_skills(source, target)
+            self.assertEqual('fixture', (target / 'custom/SKILL.md').read_text())
+            self.assertFalse((target / '.system').is_symlink())
+
+    def test_candidate_database_changes_never_modify_previous_data(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, target = Path(directory) / 'old', Path(directory) / 'new'
+            source.mkdir(); (source / '.n8n').mkdir()
+            database = source / '.n8n/database.sqlite'
+            with sqlite3.connect(database) as db:
+                db.execute('create table fixture (value text)')
+                db.execute('insert into fixture values (?)', ('keep',))
+            (source / '.n8n/config').write_text('fixture configuration')
+            backup_data(source, target)
+            with sqlite3.connect(target / '.n8n/database.sqlite') as db:
+                db.execute('delete from fixture')
+            with sqlite3.connect(database) as db:
+                self.assertEqual([('keep',)], db.execute('select * from fixture').fetchall())
+            self.assertEqual('fixture configuration', (target / '.n8n/config').read_text())
+
+    def test_linked_data_is_not_followed_into_live_or_external_files(self):
+        with tempfile.TemporaryDirectory() as directory:
+            source, target = Path(directory) / 'old', Path(directory) / 'new'
+            source.mkdir()
+            (source / 'link').symlink_to('/tmp')
+            with self.assertRaises(UpdateError):
+                backup_data(source, target)
+
+
+if __name__ == '__main__':
+    unittest.main()
