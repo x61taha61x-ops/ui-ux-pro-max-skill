@@ -85,11 +85,12 @@ def wrappers(release):
         'source /workspace/.onboarding/activate.sh\n'
         f'export MAINTENANCE_RELEASE={release}\n'
         f'export MAINTENANCE_CODEX_PROFILE={release}/native-codex\n'
-        f'export PATH={binaries}:$PATH\n'
+        f'export PATH={binaries}:{release}/runtime/n8n/tools/node_modules/.bin:$PATH\n'
         f'export GSTACK_ROOT={release}/runtime/gstack/codex/skills/gstack\n'
         f'export GSTACK_STATE_ROOT={release}/runtime/gstack/gstack-state\n'
         f'export BROWSE_STATE_FILE={release}/runtime/gstack/browse/state.json\n'
-        f'export N8N_USER_FOLDER={release}/n8n-data\n')
+        f'export N8N_USER_FOLDER={release}/n8n-data\n'
+        'export DB_TYPE=sqlite DB_SQLITE_DATABASE=database.sqlite\n')
     codex = shutil.which('codex')
     tini = shutil.which('tini') or '/workspace/.onboarding/tools/tini-root/usr/bin/tini'
     commands = {
