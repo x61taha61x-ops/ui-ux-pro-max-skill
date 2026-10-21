@@ -61,7 +61,7 @@ def prepare(source, fork_url, upstream_url, branch, destination):
     git(destination, 'config', 'user.name', 'Fork maintenance')
     git(destination, 'config', 'user.email', 'fork-maintenance@users.noreply.github.com')
     git(destination, 'config', 'commit.gpgsign', 'false')
-    git(destination, 'checkout', '-q', '-b', 'maintenance-candidate', base)
+    git(destination, 'checkout', '-q', '--detach', base)
     git(destination, 'fetch', '--no-tags', 'origin', f'{branch}:refs/remotes/origin/{branch}')
     fork = git(destination, 'rev-parse', f'refs/remotes/origin/{branch}')
     git(destination, 'fetch', '--no-tags', upstream_url, branch)

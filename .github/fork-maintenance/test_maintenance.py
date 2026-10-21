@@ -111,6 +111,13 @@ class MaintenanceTests(unittest.TestCase):
         result = self.prepare()
         self.assertFalse(result['changed'])
 
+    def test_a_previous_candidate_can_be_used_as_the_next_source(self):
+        git(self.source, 'branch', '-m', 'maintenance-candidate')
+        newest = self.commit(self.up, 'new.txt', 'new upstream')
+        result = self.prepare()
+        self.assertEqual(newest, result['candidate'])
+        self.assertEqual('maintenance-candidate', git(self.source, 'branch', '--show-current'))
+
     def test_only_validated_descendant_can_publish(self):
         self.commit(self.up, 'new.txt', 'upstream')
         result = self.prepare()
