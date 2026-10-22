@@ -1,6 +1,7 @@
 # [UI UX Pro Max](https://uupm.cc)
 
 <p align="center">
+  <a href="https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/blob/main/README.az.md">🇦🇿 Azərbaycanca</a> |
   <a href="https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/blob/main/README.id.md">🇮🇩 Bahasa Indonesia</a> |
   <a href="https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/blob/main/README.ko.md">🇰🇷 한국어</a> |
   <a href="https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/blob/main/README.vi.md">🇻🇳 Tiếng Việt</a> |
@@ -368,6 +369,32 @@ Make a mobile app UI for e-commerce
 
 Build a fintech banking app with dark theme
 ```
+
+### Apply a theme to an existing app
+
+After [installing the skill](#installation), open your app in your AI assistant and use a prompt like this. In Workflow Mode, prefix it with `/ui-ux-pro-max`.
+
+```text
+Use the ui-ux-pro-max skill to retheme my existing React app.
+Target style: Minimalism & Swiss Style.
+First inspect the framework and styling-library versions, routes, components,
+styles, and existing theme tokens. Keep the current component structure,
+behavior, and business logic.
+Reuse and update the existing semantic tokens for colors, typography, spacing,
+radii, shadows, and interaction states; add missing tokens rather than creating
+a parallel theme system. Replace hard-coded styles one component at a time.
+Verify contrast, keyboard focus, responsive layouts, and all supported light/dark
+modes. Summarize changed files and any remaining hard-coded styles.
+```
+
+Replace `Minimalism & Swiss Style` with your preferred [catalog style](src/ui-ux-pro-max/data/styles.csv) or visual direction. Search results provide design guidance; they do not automatically rewrite your app.
+
+**Theme migration checklist:**
+
+- **Audit:** Find theme-related hard-coded values in stylesheets, inline styles, and utilities such as `bg-blue-600` or `text-[#1e293b]`.
+- **Map:** Reuse semantic roles such as `background`, `surface`, `foreground`, `primary`, `border`, and `ring` in the app's existing styling system. Add missing roles using its installed library version's conventions.
+- **Migrate:** Replace hard-coded values with token references in small component batches. Changing tokens alone will not affect styles that do not use them.
+- **Verify:** Check text/UI contrast, hover/focus/disabled states, responsive layouts, and each supported theme after every batch.
 
 ### How It Works
 
