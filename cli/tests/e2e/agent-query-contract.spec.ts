@@ -6,7 +6,7 @@ const DESCRIPTION =
 
 test('all platform metadata uses one accurate activation description', async () => {
   const configs = await loadAllPlatformConfigs();
-  expect(configs.size).toBe(23);
+  expect(configs.size).toBe(24);
   for (const [platform, config] of configs) {
     expect(config.description, platform).toBe(DESCRIPTION);
     if (config.frontmatter?.description) {

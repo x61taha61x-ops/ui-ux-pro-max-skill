@@ -7,6 +7,7 @@ const cases = [
   ['kiro', '.kiro/steering/ui-ux-pro-max/scripts/search.py'],
   ['droid', '.factory/skills/ui-ux-pro-max/scripts/search.py'],
   ['zcode', '.zcode/skills/ui-ux-pro-max/scripts/search.py'],
+  ['kimi', '.kimi-code/skills/ui-ux-pro-max/scripts/search.py'],
   ['amazonq', '.amazonq/skills/ui-ux-pro-max/scripts/search.py'],
   ['openclaw', '.agents/skills/ui-ux-pro-max/scripts/search.py'],
 ] as const;

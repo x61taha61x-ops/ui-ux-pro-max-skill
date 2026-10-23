@@ -281,6 +281,7 @@ uipro init --ai warp        # Warp
 uipro init --ai augment     # Augment
 uipro init --ai codewhale   # CodeWhale
 uipro init --ai zcode       # ZCode
+uipro init --ai kimi        # Kimi Code
 uipro init --ai amazonq     # Amazon Q Developer
 uipro init --ai openclaw    # OpenClaw (.agents/skills/)
 uipro init --ai universal   # Universal / Agent Standard (.agents/skills/)
@@ -295,6 +296,7 @@ npm paketi `ui-ux-pro-max-cli`-dır; o hələ də `uipro` əmrini quraşdırır.
 uipro init --ai claude --global   # ~/.claude/skills/ qovluğuna quraşdırır
 uipro init --ai cursor --global   # ~/.cursor/skills/ qovluğuna quraşdırır
 uipro init --ai zcode --global    # ~/.zcode/skills/ qovluğuna quraşdırır
+uipro init --ai kimi --global     # ~/.kimi-code/skills/ qovluğuna quraşdırır
 uipro init --ai universal --global # ~/.agents/skills/ qovluğuna quraşdırır
 ```
 
@@ -327,7 +329,7 @@ python3 --version
 
 ### Skill rejimi (avtomatik aktivləşir)
 
-**Dəstəklənənlər:** Claude Code, Cursor, Windsurf, Antigravity, Codex CLI, Continue, Gemini CLI, OpenCode, Qoder, CodeBuddy, Droid (Factory), KiloCode, Warp, Augment, CodeWhale, ZCode, Amazon Q Developer, OpenClaw, GitHub Copilot
+**Dəstəklənənlər:** Claude Code, Cursor, Windsurf, Antigravity, Codex CLI, Continue, Gemini CLI, OpenCode, Qoder, CodeBuddy, Droid (Factory), KiloCode, Warp, Augment, CodeWhale, ZCode, Kimi Code, Amazon Q Developer, OpenClaw, GitHub Copilot
 
 Skill UI/UX işi istədiyiniz zaman avtomatik aktivləşir. Sadəcə təbii şəkildə yazın:
 
@@ -360,6 +362,32 @@ Make a mobile app UI for e-commerce
 
 Build a fintech banking app with dark theme
 ```
+
+### Mövcud tətbiqə tema tətbiq etmək
+
+[Skill-i quraşdırdıqdan](#quraşdırma) sonra tətbiqinizi AI köməkçinizdə açın və buna oxşar prompt istifadə edin. İş axını rejimində (Workflow Mode) əvvəlinə `/ui-ux-pro-max` əlavə edin.
+
+```text
+Use the ui-ux-pro-max skill to retheme my existing React app.
+Target style: Minimalism & Swiss Style.
+First inspect the framework and styling-library versions, routes, components,
+styles, and existing theme tokens. Keep the current component structure,
+behavior, and business logic.
+Reuse and update the existing semantic tokens for colors, typography, spacing,
+radii, shadows, and interaction states; add missing tokens rather than creating
+a parallel theme system. Replace hard-coded styles one component at a time.
+Verify contrast, keyboard focus, responsive layouts, and all supported light/dark
+modes. Summarize changed files and any remaining hard-coded styles.
+```
+
+`Minimalism & Swiss Style` ifadəsini istədiyiniz [kataloq üslubu](src/ui-ux-pro-max/data/styles.csv) və ya vizual istiqamətlə əvəz edin. Axtarış nəticələri dizayn təlimatı verir; onlar tətbiqinizi avtomatik olaraq yenidən yazmır.
+
+**Tema miqrasiyası üçün yoxlama siyahısı:**
+
+- **Audit:** Üslub cədvəllərində, inline üslublarda və `bg-blue-600` və ya `text-[#1e293b]` kimi utility-lərdə temaya aid sərt kodlanmış dəyərləri tapın.
+- **Uyğunlaşdırma:** Tətbiqin mövcud üslub sistemində `background`, `surface`, `foreground`, `primary`, `border` və `ring` kimi semantik rolları təkrar istifadə edin. Çatışmayan rolları quraşdırılmış kitabxana versiyasının qaydalarına uyğun əlavə edin.
+- **Miqrasiya:** Sərt kodlanmış dəyərləri token istinadları ilə kiçik komponent qrupları ilə əvəz edin. Yalnız token-ləri dəyişmək onlardan istifadə etməyən üslublara təsir etməyəcək.
+- **Yoxlama:** Hər qrupdan sonra mətn/UI kontrastını, hover/focus/disabled vəziyyətlərini, responsiv düzülüşləri və dəstəklənən hər temanı yoxlayın.
 
 ### Necə işləyir
 

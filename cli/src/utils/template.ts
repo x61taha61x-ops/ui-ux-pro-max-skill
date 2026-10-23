@@ -70,6 +70,7 @@ const AI_TO_PLATFORM: Record<string, string> = {
   augment: 'augment',
   codewhale: 'codewhale',
   zcode: 'zcode',
+  kimi: 'kimi',
   amazonq: 'amazonq',
   openclaw: 'openclaw',
   universal: 'universal',

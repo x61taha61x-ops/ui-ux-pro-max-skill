@@ -43,6 +43,19 @@ test('dry-run plan supports the zcode platform layout', async () => {
   expect(joined).toContain('Would copy 6 sub-skills (');
 });
 
+test('dry-run plan supports the kimi platform layout', async () => {
+  const scratch = await mkdtemp(join(tmpdir(), 'uipro-dry-run-kimi-'));
+
+  const actions = await planPlatformInstallActions(scratch, 'kimi');
+
+  const joined = actions.join('\n');
+  expect(joined).toContain(
+    join(scratch, '.kimi-code', 'skills', 'ui-ux-pro-max', 'SKILL.md')
+  );
+  expect(joined).toContain('Would copy data + scripts:');
+  expect(joined).toContain('Would copy 6 sub-skills (');
+});
+
 test('dry-run plan keeps amazonq data and sub-skills out of the rules folder', async () => {
   const scratch = await mkdtemp(join(tmpdir(), 'uipro-dry-run-amazonq-'));
 
