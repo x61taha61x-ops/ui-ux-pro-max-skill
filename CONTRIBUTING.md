@@ -174,6 +174,6 @@ Harassment, spam, or low-effort contributions will be closed without review.
 
 ## Questions?
 
-Open a [Discussion](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/discussions) or check the [README](README.md) first.
+Open an [issue](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/issues) or check the [README](README.md) first.
 
 Happy contributing! 🚀

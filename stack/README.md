@@ -23,8 +23,8 @@ design is missing: a **knowledge** layer, a **taste** layer, and a **visual feed
 
 ```bash
 # 1. Clone and enter
-git clone https://github.com/YMungerDev/claude-website-design-stack
-cd claude-website-design-stack
+git clone https://github.com/nextlevelbuilder/ui-ux-pro-max-skill.git
+cd ui-ux-pro-max-skill/stack
 
 # 2. Install the skills/plugins + Playwright browser
 ./scripts/setup.sh

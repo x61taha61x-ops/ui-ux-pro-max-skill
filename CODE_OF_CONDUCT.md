@@ -31,7 +31,7 @@ This Code of Conduct applies within all community spaces (issues, pull requests,
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the maintainers by opening a [GitHub Discussion](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill/discussions) marked private/moderation, or via the contact listed on [uupm.cc](https://www.uupm.cc). All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the maintainers via the contact listed on [uupm.cc](https://www.uupm.cc). All complaints will be reviewed and investigated promptly and fairly.
 
 ## Attribution
 
