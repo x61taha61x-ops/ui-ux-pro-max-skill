@@ -82,11 +82,6 @@ async function tryGitHubInstall(
 
     return copiedFolders;
   } catch (error) {
-    // Cleanup temp directory on error
-    if (tempDir) {
-      await cleanup(tempDir);
-    }
-
     if (error instanceof GitHubRateLimitError) {
       spinner.warn(`GitHub rate limit reached, falling back to bundled assets.\n${getGitHubTokenGuidance()}`);
       return null;
@@ -106,6 +101,10 @@ async function tryGitHubInstall(
     // Unknown errors - still fall back
     spinner.warn('Download failed, using template generation...');
     return null;
+  } finally {
+    if (tempDir) {
+      await cleanup(tempDir);
+    }
   }
 }
 
