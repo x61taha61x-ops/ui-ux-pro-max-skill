@@ -36,7 +36,8 @@
     "warp",
     "augment",
     "antigravity",
-    "openclaw"
+    "openclaw",
+    "autoclaw"
   ],
   "install": "npx ui-ux-pro-max-cli init --ai {{platform}}"
 }
